@@ -35,7 +35,7 @@ pip3 install https://download.pytorch.org/whl/cpu/torchvision-0.3.0-cp37-cp37m-w
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/scar430/ChatBot/blob/master/LISCENSE.md) file for details
 
 ## Acknowledgments
 
