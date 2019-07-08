@@ -1,3 +1,5 @@
+#Created by Seth Banker, A.K.A. scar430, A.K.A. a really cool guy B)
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -21,7 +23,8 @@ import math
 import discord
 import json
 
-import json
+import sqlite3
+from datetime import datetime
 
 with open('config.json', 'r') as f:
     config = json.load(f)
@@ -35,31 +38,34 @@ class MyClient(discord.Client):
         print('Logged on as', self.user)
 
     async def on_message(self, message):
-        # don't respond to ourselves
+        # Don't respond to ourselves
         if message.author == self.user:
             return
 
         if message.content == 'ping':
-            print("Quit poking me! I'm already awake.")
-            await message.channel.send('pong')
+            print("I am awake!")
+            await message.channel.send('I am awake!')
             return
 
-        while(1):
-            try:
-                if message.content != '' and evaluateInput(message, encoder, decoder, searcher, voc) != None and message.mentions[0] == self.user:
-                    print("Recieved input...")
-                    await message.channel.send(evaluateInput(message, encoder, decoder, searcher, voc))
-                    print("Sending output.")
-                    return
-            except IndexError:
+        try:
+            # When the message isn't empty, the estimated output is not null, and the first mention is Chat Bot, then send the output message.
+            if message.content != '' and message.mentions[0] == self.user:
+                print("Recieved input...")
+                await message.channel.send(evaluateInput(message, encoder, decoder, searcher, voc))
+                print("Sent output.")
                 return
+        # Don't worry about this.
+        except IndexError:
+            return
 
+# Determining if training on the gpu is plausible, if not then we'll train on the cpu.
 USE_CUDA = torch.cuda.is_available()
 device = torch.device("cuda" if USE_CUDA else "cpu")
 
 corpus_name = "cornell movie-dialogs corpus"
 corpus = os.path.join("data", corpus_name)
 
+# Ignore this.
 def printLines(file, n=10):
     with open(file, 'rb') as datafile:
         lines = datafile.readlines()
@@ -82,7 +88,7 @@ def loadLines(fileName, fields):
     return lines
 
 
-# Groups fields of lines from `loadLines` into conversations based on *movie_conversations.txt*
+# Groups fields of lines from `loadLines` into conversations based on movie_conversations.txt
 def loadConversations(fileName, lines, fields):
     conversations = []
     with open(fileName, 'r', encoding='iso-8859-1') as f:
@@ -639,13 +645,13 @@ def evaluateInput(message, encoder, decoder, searcher, voc):
     input_sentence = ''
     while(1):
         try:
-            # Get input sentence
+            # Take input and remove the Mention form it.
             removeMention = message.content.split()
             del removeMention[0]
             newInput = (' '.join(removeMention))
             print('Removed Mention, created new string: "{}" ...'.format(newInput))
             # Check if it is quit case
-            if newInput == 'q' or input_sentence == 'quit': 
+            if newInput == 'q' or newInput == 'quit': 
                 print('Stopping...')
                 break
             # Normalize sentence
@@ -656,11 +662,11 @@ def evaluateInput(message, encoder, decoder, searcher, voc):
             # Format and print response sentence
             output_words[:] = [x for x in output_words if not (x == 'EOS' or x == 'PAD')]
             #print('Bot:', ' '.join(output_words))
-            print("Formulated output...")
+            print('Formulated output: "{}" ...'.format(output_words))
             return (' '.join(output_words))
 
         except KeyError:
-            #print("Error: Encountered unknown word.")
+            print("Error: Encountered unknown word.")
             return "I don't understand that sentence. :frowning: "
 
 # Configure models
@@ -678,10 +684,14 @@ batch_size = 64
 
 checkpoint_iter = 4000
 
+# loadFromFile should be pulled from your config.json
+
+# Bot has already trained through all of it's current datasets so just load those.
 if (loadFromFile == True):
     loadFilename = os.path.join(save_dir, model_name, corpus_name,
                             '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),
                             '{}_checkpoint.tar'.format(checkpoint_iter))
+# Bot has not trained on all of it's datasets so begin training now (This takes forever.).
 else:
     loadFilename = None 
 
@@ -716,7 +726,7 @@ decoder = decoder.to(device)
 print('Models built and ready to go!')
 
 # --- TRAIN ---
-# Configure training/optimization
+'''# Configure training/optimization
 clip = 50.0
 teacher_forcing_ratio = 1.0
 learning_rate = 0.0001
@@ -741,7 +751,7 @@ if loadFilename:
 print("Starting Training!")
 trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer,
            embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size,
-           print_every, save_every, clip, corpus_name, loadFilename)
+           print_every, save_every, clip, corpus_name, loadFilename)'''
 
 # --- RUN ---
 # Set dropout layers to eval mode

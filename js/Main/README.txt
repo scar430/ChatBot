@@ -1,1 +1,0 @@
-The Javascript version of Chat Bot is currently not supported.
