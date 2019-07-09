@@ -26,16 +26,41 @@ import json
 import sqlite3
 from datetime import datetime
 
+from discord.utils import find
+
+print('***** APPLICATION HAS STARTED *****')
+
 with open('config.json', 'r') as f:
     config = json.load(f)
 
 token = config['token']
 loadFromFile = config['loadFromFile']
+version = config['version']
 
 class MyClient(discord.Client):
 
     async def on_ready(self):
         print('Logged on as', self.user)
+        appInfo = await client.application_info()
+        print(appInfo)
+
+    async def on_guild_join(self, guild):
+        appInfo = await client.application_info()
+        print('Joined guild : "{}"'.format(guild.name))
+        embed = discord.Embed(title="{}".format(appInfo.name), description="{}".format(appInfo.description), color=0xf64b4b)
+
+        embed.add_field(name="How to talk to Chat Bot", value='''In order to talk to Chat Bot,
+         you must begin your message by mentioning the bot and then typing your desired input.
+         \nInput :\n`@Chat Bot#9213 Hello!`\nOutput :\n`hello ...`''', inline=False)
+        #embed.set_footer(text="Created by {}.".format(appInfo.owner.name), '')
+        embed.set_footer(text="Created by {}. | {}".format(appInfo.owner.name, version), icon_url='')
+
+        general = find(lambda x: x.name == 'general',  guild.text_channels)
+        if general:
+            send = await general.send('', embed=embed)
+            await send.pin()
+            print('Sent Tutorial.')
+            return
 
     async def on_message(self, message):
         # Don't respond to ourselves
@@ -50,10 +75,21 @@ class MyClient(discord.Client):
         try:
             # When the message isn't empty, the estimated output is not null, and the first mention is Chat Bot, then send the output message.
             if message.content != '' and message.mentions[0] == self.user:
-                print("Recieved input...")
-                await message.channel.send(evaluateInput(message, encoder, decoder, searcher, voc))
-                print("Sent output.")
-                return
+                #help command is currently defunct
+                appInfo = await client.application_info()
+                if message.content == '{} help'.format(message.mentions[0]):
+                    print('Help was requested ...')
+                    embed = discord.Embed(title="Chat Bot Py v1.0", description="{}".format(appInfo.description), color=0xf64b4b)
+                    embed.add_field(name="How to talk to Chat Bot", value="In order to talk to Chat Bot, you must begin your message by mentioning the bot and then typing your desired input.\nInput :\n`@Chat Bot#9213 Hello!`\nOutput :\n`hello ...`", inline=False)
+                    await client.send_message(message.channel, embed=embed)
+                    print('Help was sent.')
+                    return
+                else:
+                    print("Recieved input...")
+                    await message.channel.send("{} ".format(message.author.mention) + evaluateInput(message, encoder, decoder, searcher, voc))
+                    print("Sent output.")
+                    return
+
         # Don't worry about this.
         except IndexError:
             return
