@@ -4,7 +4,7 @@ Chat Bot is an AI capable of intelligent speech, this was combined with a Discor
 
 ## Proper use for Chat Bot Py v1.0
 In order to communicate with the bot your message must start with the Mention of the bot.
-![Tutorial](tutorial.png)
+![Tutorial](https://github.com/scar430/ChatBot/blob/master/tutorial.PNG)
 
 ## Notes for collaborators
 - py/Main/config.json (not included in the repository) contains two variables, "token" and "loadFromFile".
